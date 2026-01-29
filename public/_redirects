@@ -1,1 +1,5 @@
 /*  /index.html  200
+/sitemap.xml/  /sitemap.xml  301
+/robots.txt/   /robots.txt   301
+/llms.txt/     /llms.txt     301
+/ai.txt/       /ai.txt       301
