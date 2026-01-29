@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mohamed-el-hassainy-portoflio.pages.dev/sitemap.xml

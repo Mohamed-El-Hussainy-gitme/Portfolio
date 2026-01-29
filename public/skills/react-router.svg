@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="React Router logo">
+  <g fill="none" stroke="#F43F5E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="7" r="2.2"/>
+    <circle cx="17" cy="7" r="2.2"/>
+    <circle cx="7" cy="17" r="2.2"/>
+    <circle cx="17" cy="17" r="2.2"/>
+    <circle cx="12" cy="12" r="2.2"/>
+    <path d="M8.8 8.8 10.4 10.4M15.2 8.8 13.6 10.4M8.8 15.2 10.4 13.6M15.2 15.2 13.6 13.6"/>
+  </g>
+</svg>

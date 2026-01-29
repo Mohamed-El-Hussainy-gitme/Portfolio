@@ -1,0 +1,40 @@
+import type { Metadata } from "next";
+import ProjectsPage from "@/views/ProjectsPage";
+import { buildMetadata } from "@/core/seo/metadata";
+import { PAGE_KEYWORDS } from "@/core/seo/keywords";
+import { projects } from "@/data/projects";
+import { breadcrumbList, projectsItemListSchema } from "@/core/seo/schema";
+
+type Props = { params: { locale: "en" | "ar" } };
+
+export function generateMetadata({ params }: Props): Metadata {
+  const locale = params.locale === "ar" ? "ar" : "en";
+  return buildMetadata(locale, {
+    pathname: "/projects",
+    title: { en: "Projects and Case Studies", ar: "أعمال ومشاريع" },
+    description: {
+      en: "Selected web development projects with SEO and performance focus.",
+      ar: "مشاريع وأعمال بتركيز على SEO والأداء.",
+    },
+    keywords: PAGE_KEYWORDS.projects,
+  });
+}
+
+export default function Page({ params }: { params: { locale: "en" | "ar" } }) {
+  const locale = params.locale === "ar" ? "ar" : "en";
+
+  const jsonLd = [
+    projectsItemListSchema(locale, projects),
+    breadcrumbList(locale, [
+      { name: locale === "ar" ? "الرئيسية" : "Home", path: "/" },
+      { name: locale === "ar" ? "المشاريع" : "Projects", path: "/projects" },
+    ]),
+  ];
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ProjectsPage />
+    </>
+  );
+}

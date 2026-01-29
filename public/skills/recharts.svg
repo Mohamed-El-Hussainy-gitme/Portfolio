@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Recharts logo">
+  <rect x="4" y="12" width="3" height="8" rx="1" fill="#22C55E"/>
+  <rect x="9" y="9" width="3" height="11" rx="1" fill="#38BDF8"/>
+  <rect x="14" y="6" width="3" height="14" rx="1" fill="#A78BFA"/>
+  <path d="M4 10l4-2 4 2 4-3 4 2" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
