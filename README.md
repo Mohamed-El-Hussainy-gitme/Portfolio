@@ -48,3 +48,4 @@ npm run deploy
 - Unknown slugs return 404
 - Lighthouse SEO score check
 - Search Console: submit sitemap + request indexing
+"# Portfolio" 
