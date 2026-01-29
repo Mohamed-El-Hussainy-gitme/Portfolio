@@ -6,12 +6,13 @@
   "engines": {
     "node": ">=18"
   },
+ 
   "scripts": {
     "dev": "next dev",
-    "build": "npx @cloudflare/next-on-pages@1",
-    "preview": "npx wrangler pages dev .vercel/output/static",
-    "lint": "next lint"
+    "build": "next build",
+    "pages:build": "npx @cloudflare/next-on-pages@1"
   },
+
   "dependencies": {
     "framer-motion": "^12.23.25",
     "gsap": "^3.13.0",
