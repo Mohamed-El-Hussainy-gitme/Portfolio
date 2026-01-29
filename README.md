@@ -49,3 +49,4 @@ npm run deploy
 - Lighthouse SEO score check
 - Search Console: submit sitemap + request indexing
 "# Portfolio" 
+"# portfolio" 
