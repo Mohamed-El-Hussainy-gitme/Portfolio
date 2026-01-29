@@ -19,8 +19,7 @@ function buildUrl(locale: Locale, path: string): string {
 
 function toDateOnly(value: string | Date): string {
   const d = typeof value === "string" ? new Date(value) : value;
-  // YYYY-MM-DD
-  return d.toISOString().slice(0, 10);
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -28,44 +27,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const locale of locales) {
-    // static pages
     for (const path of staticPaths) {
-      entries.push({
-        url: buildUrl(locale, path),
-        lastModified: today,
-        changeFrequency: path === "/" ? "weekly" : "monthly",
-        priority: path === "/" ? 1 : 0.7,
-      });
+      entries.push({ url: buildUrl(locale, path), lastModified: today });
     }
 
-    // projects
     for (const p of projects) {
-      entries.push({
-        url: buildUrl(locale, `/projects/${p.slug}`),
-        lastModified: today,
-        changeFrequency: "monthly",
-        priority: 0.6,
-      });
+      entries.push({ url: buildUrl(locale, `/projects/${p.slug}`), lastModified: today });
     }
 
-    // services
     for (const s of services) {
-      entries.push({
-        url: buildUrl(locale, `/services/${s.slug}`),
-        lastModified: today,
-        changeFrequency: "monthly",
-        priority: 0.65,
-      });
+      entries.push({ url: buildUrl(locale, `/services/${s.slug}`), lastModified: today });
     }
 
-    // blog
     for (const post of blogPosts) {
-      entries.push({
-        url: buildUrl(locale, `/blog/${post.slug}`),
-        lastModified: toDateOnly(post.dateISO),
-        changeFrequency: "monthly",
-        priority: 0.55,
-      });
+      entries.push({ url: buildUrl(locale, `/blog/${post.slug}`), lastModified: toDateOnly(post.dateISO) });
     }
   }
 
