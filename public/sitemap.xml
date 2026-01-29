@@ -25,6 +25,15 @@
   <url><loc>https://elhussainy.pages.dev/en/projects/project-7</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/projects/rose-ecommerce-website-development</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/projects/growlik</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-1</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-2</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-3</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-4</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-5</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-6</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/project-7</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/rose-ecommerce-website-development</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/projects/growlik</loc></url>
 
   <!-- Services (EN) -->
   <url><loc>https://elhussainy.pages.dev/en/services/landing-page</loc></url>
@@ -33,6 +42,12 @@
   <url><loc>https://elhussainy.pages.dev/en/services/dashboard</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/services/seo-performance</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/services/maintenance</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/landing-page</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/company-website</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/ecommerce</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/dashboard</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/seo-performance</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/services/maintenance</loc></url>
 
   <!-- Blog (EN) -->
   <url><loc>https://elhussainy.pages.dev/en/blog/nextjs-performance-patterns</loc></url>
@@ -45,4 +60,14 @@
   <url><loc>https://elhussainy.pages.dev/en/blog/form-handling-validation</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/blog/auth-route-protection</loc></url>
   <url><loc>https://elhussainy.pages.dev/en/blog/deploy-ci-maintainability</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/nextjs-performance-patterns</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/technical-seo-foundations</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/rtl-ui-best-practices</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/dashboard-ui-patterns</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/react-component-architecture</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/api-integration-patterns</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/image-optimization-lcp</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/form-handling-validation</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/auth-route-protection</loc></url>
+  <url><loc>https://elhussainy.pages.dev/ar/blog/deploy-ci-maintainability</loc></url>
 </urlset>
