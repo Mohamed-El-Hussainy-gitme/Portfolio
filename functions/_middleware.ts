@@ -1,12 +1,12 @@
 // functions/_middleware.ts
+
 type PagesContext = { request: Request; next: () => Promise<Response> };
 
-const LOCALES = new Set(["en", "ar"]);
+type Locale = "en" | "ar";
+const LOCALES = new Set<Locale>(["en", "ar"]);
 
-// locale-less routes اللي كانت تسبب duplicate قبل 301
-const LOCALELESS_PREFIXES = ["about", "contact", "projects", "services", "blog"];
+const LOCALELESS_PREFIXES = new Set(["about", "contact", "projects", "services", "blog"]);
 
-// هنشيل lang + أشهر tracking params عشان ما يحصلش دوبلكيت بالـ query strings
 const STRIP_QUERY_KEYS = new Set([
   "lang",
   "utm_source",
@@ -21,7 +21,6 @@ const STRIP_QUERY_KEYS = new Set([
 ]);
 
 function collapseSlashes(pathname: string): string {
-  // keep leading slash, collapse the rest
   return pathname.replace(/\/{2,}/g, "/");
 }
 
@@ -30,6 +29,7 @@ function stripTrailingSlash(pathname: string): string {
   return pathname;
 }
 
+// IMPORTANT: only touch index.html (do NOT touch google-site-verification html file)
 function stripIndexHtml(pathname: string): string {
   if (pathname === "/index.html") return "/";
   if (pathname.endsWith("/index.html")) return pathname.slice(0, -"/index.html".length) || "/";
@@ -41,18 +41,50 @@ function firstSegment(pathname: string): string | null {
   return parts[0] || null;
 }
 
+function stripLocalePrefix(pathname: string): string {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts[0] === "en" || parts[0] === "ar") parts.shift();
+  return parts.length ? `/${parts.join("/")}` : "/";
+}
+
+function withLocale(pathname: string, locale: Locale): string {
+  const clean = stripLocalePrefix(pathname);
+  return clean === "/" ? `/${locale}` : `/${locale}${clean}`;
+}
+
 function isLocalePath(pathname: string): boolean {
   const seg = firstSegment(pathname);
-  return !!seg && LOCALES.has(seg);
+  return !!seg && (seg === "en" || seg === "ar");
 }
 
 function isLocaleLessKnownRoute(pathname: string): boolean {
   const seg = firstSegment(pathname);
-  if (!seg) return false;
-  return LOCALELESS_PREFIXES.includes(seg);
+  return !!seg && LOCALELESS_PREFIXES.has(seg);
 }
 
-function addNoSniff(res: Response): Response {
+function isAssetOrNext(pathname: string): boolean {
+  // لا تلمس أصول الصور (أسماء ملفات عندك فيها Spaces/Uppercase)
+  return (
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/assets/") ||
+    pathname.startsWith("/brand/") ||
+    pathname.startsWith("/reviews/") ||
+    pathname.startsWith("/skills/") ||
+    pathname === "/favicon.svg" ||
+    pathname === "/og-cover.svg" ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".jpeg") ||
+    pathname.endsWith(".webp") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".css") ||
+    pathname.endsWith(".js") ||
+    pathname.endsWith(".map")
+  );
+}
+
+function addSecurityHeaders(res: Response): Response {
   const out = new Response(res.body, res);
   out.headers.set("X-Content-Type-Options", "nosniff");
   out.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -65,23 +97,36 @@ export async function onRequest(context: PagesContext) {
   const originalPath = url.pathname;
   const originalSearch = url.search;
 
-  // ---- 1) Normalize pathname ----
+  // ---- A) Normalize pathname (lightweight) ----
   let pathname = collapseSlashes(url.pathname);
   pathname = stripIndexHtml(pathname);
   pathname = stripTrailingSlash(pathname);
 
-  // sitemap-index.xml => sitemap.xml
+  // Special-case sitemaps/robots (we want to normalize these even though they look like "assets")
   if (pathname === "/sitemap-index.xml") pathname = "/sitemap.xml";
 
-  // root => /en
-  if (pathname === "/") pathname = "/en";
+  // ---- B) Detect desired locale from ?lang= (if present) ----
+  let desiredLocale: Locale | null = null;
+  const langParam = url.searchParams.get("lang");
+  if (langParam === "en" || langParam === "ar") desiredLocale = langParam;
 
-  // locale-less known routes => prefix /en
-  if (!isLocalePath(pathname) && isLocaleLessKnownRoute(pathname)) {
-    pathname = `/en${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  // ---- C) Canonicalize root + locale-less known routes ----
+  // Root:
+  if (pathname === "/") {
+    pathname = `/${desiredLocale ?? "en"}`;
   }
 
-  // ---- 2) Normalize query params (kill ?lang= and tracking) ----
+  // Locale-less known routes (/about, /blog/x, ...)
+  if (!isLocalePath(pathname) && isLocaleLessKnownRoute(pathname)) {
+    pathname = `/${desiredLocale ?? "en"}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  }
+
+  // If it's already a locale path but ?lang says otherwise, move to the right locale
+  if (desiredLocale && isLocalePath(pathname)) {
+    pathname = withLocale(pathname, desiredLocale);
+  }
+
+  // ---- D) Strip query params (lang + tracking) ----
   let changedQuery = false;
   for (const key of Array.from(url.searchParams.keys())) {
     if (STRIP_QUERY_KEYS.has(key)) {
@@ -90,18 +135,25 @@ export async function onRequest(context: PagesContext) {
     }
   }
 
+  // ---- E) If it’s a pure asset path, do not rewrite path casing etc. ----
+  // We still allow redirect normalization above for sitemap-index.xml and index.html and trailing slash.
+  // After those transforms, if it's an asset, just proceed.
+  const isAsset = isAssetOrNext(pathname) || pathname === "/robots.txt" || pathname === "/sitemap.xml" || pathname === "/llms.txt" || pathname === "/ai.txt";
+
   // rebuild URL if any change happened
-  const changedPath = pathname !== originalPath;
   const newSearch = url.searchParams.toString();
   const rebuiltSearch = newSearch ? `?${newSearch}` : "";
+
+  const changedPath = pathname !== originalPath;
   const changed = changedPath || changedQuery || originalSearch !== rebuiltSearch;
 
   if (changed) {
     const redirectUrl = `${url.origin}${pathname}${rebuiltSearch}`;
-    return Response.redirect(redirectUrl, 301);
+    const res = Response.redirect(redirectUrl, 301);
+    return addSecurityHeaders(res);
   }
 
-  // ---- 3) Pass-through & add minimal security headers ----
+  // ---- F) Pass-through ----
   const res = await context.next();
-  return addNoSniff(res);
+  return addSecurityHeaders(res);
 }

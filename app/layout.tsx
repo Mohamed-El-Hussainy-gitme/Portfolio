@@ -21,12 +21,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
-  // ❌ لا تضع canonical ثابت هنا
+  // ✅ لا تضع canonical ثابت هنا
+  // الـ canonical الصحيح يتحدد داخل صفحات /[locale] عبر buildMetadata()
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>
