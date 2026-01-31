@@ -21,8 +21,6 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
-  // ✅ لا تضع canonical ثابت هنا
-  // الـ canonical الصحيح يتحدد داخل صفحات /[locale] عبر buildMetadata()
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
