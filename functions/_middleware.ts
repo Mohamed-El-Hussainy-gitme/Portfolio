@@ -63,7 +63,6 @@ function isLocaleLessKnownRoute(pathname: string): boolean {
 }
 
 function isAssetOrNext(pathname: string): boolean {
-  // لا تلمس أصول الصور (أسماء ملفات عندك فيها Spaces/Uppercase)
   return (
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/assets/") ||
@@ -94,39 +93,56 @@ function addSecurityHeaders(res: Response): Response {
 export async function onRequest(context: PagesContext) {
   const url = new URL(context.request.url);
 
+  // ✅ A) Hard bypass for SEO/system files (NO redirects / NO query stripping / NO locale logic)
+  const SEO_BYPASS = new Set([
+    "/robots.txt",
+    "/sitemap.xml",
+    "/sitemap-index.xml",
+    "/sitemap-en.xml",
+    "/sitemap-ar.xml",
+    "/en/sitemap.xml",
+    "/ar/sitemap.xml",
+    "/llms.txt",
+    "/ai.txt",
+    "/googlebfee5bd7eb86337c.html",
+  ]);
+
+  if (SEO_BYPASS.has(url.pathname)) {
+    const res = await context.next();
+    return addSecurityHeaders(res);
+  }
+
   const originalPath = url.pathname;
   const originalSearch = url.search;
 
-  // ---- A) Normalize pathname (lightweight) ----
+  // ---- B) Normalize pathname (lightweight) ----
   let pathname = collapseSlashes(url.pathname);
   pathname = stripIndexHtml(pathname);
   pathname = stripTrailingSlash(pathname);
 
-  // Special-case sitemaps/robots (we want to normalize these even though they look like "assets")
-  if (pathname === "/sitemap-index.xml") pathname = "/sitemap.xml";
+  // ❌ مهم: بعد ما تعمل ملف فعلي sitemap-index.xml (أو تولده)، لا تعمل له redirect هنا.
+  // لو أنت "لا تملك" sitemap-index.xml كملف/route وتريد فقط تحويله -> sitemap.xml، اترك هذا السطر.
+  // لكن طالما عايز ثبات SEO، الأفضل تخليه ملف 200 وتلغي السطر التالي:
 
-  // ---- B) Detect desired locale from ?lang= (if present) ----
+  // ---- C) Detect desired locale from ?lang= (if present) ----
   let desiredLocale: Locale | null = null;
   const langParam = url.searchParams.get("lang");
   if (langParam === "en" || langParam === "ar") desiredLocale = langParam;
 
-  // ---- C) Canonicalize root + locale-less known routes ----
-  // Root:
+  // ---- D) Canonicalize root + locale-less known routes ----
   if (pathname === "/") {
     pathname = `/${desiredLocale ?? "en"}`;
   }
 
-  // Locale-less known routes (/about, /blog/x, ...)
   if (!isLocalePath(pathname) && isLocaleLessKnownRoute(pathname)) {
     pathname = `/${desiredLocale ?? "en"}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
   }
 
-  // If it's already a locale path but ?lang says otherwise, move to the right locale
   if (desiredLocale && isLocalePath(pathname)) {
     pathname = withLocale(pathname, desiredLocale);
   }
 
-  // ---- D) Strip query params (lang + tracking) ----
+  // ---- E) Strip query params (lang + tracking) ----
   let changedQuery = false;
   for (const key of Array.from(url.searchParams.keys())) {
     if (STRIP_QUERY_KEYS.has(key)) {
@@ -135,10 +151,24 @@ export async function onRequest(context: PagesContext) {
     }
   }
 
-  // ---- E) If it’s a pure asset path, do not rewrite path casing etc. ----
-  // We still allow redirect normalization above for sitemap-index.xml and index.html and trailing slash.
-  // After those transforms, if it's an asset, just proceed.
-  const isAsset = isAssetOrNext(pathname) || pathname === "/robots.txt" || pathname === "/sitemap.xml" || pathname === "/llms.txt" || pathname === "/ai.txt";
+  // ---- F) Assets: لا تغيّرها ----
+  // لو أصول، لا تعمل locale logic إضافي (إحنا بالفعل عملنا normalization أعلاه فقط)
+  if (isAssetOrNext(pathname)) {
+    const newSearch = url.searchParams.toString();
+    const rebuiltSearch = newSearch ? `?${newSearch}` : "";
+
+    const changedPath = pathname !== originalPath;
+    const changed = changedPath || changedQuery || originalSearch !== rebuiltSearch;
+
+    if (changed) {
+      const redirectUrl = `${url.origin}${pathname}${rebuiltSearch}`;
+      const res = Response.redirect(redirectUrl, 301);
+      return addSecurityHeaders(res);
+    }
+
+    const res = await context.next();
+    return addSecurityHeaders(res);
+  }
 
   // rebuild URL if any change happened
   const newSearch = url.searchParams.toString();
@@ -153,7 +183,6 @@ export async function onRequest(context: PagesContext) {
     return addSecurityHeaders(res);
   }
 
-  // ---- F) Pass-through ----
   const res = await context.next();
   return addSecurityHeaders(res);
 }
